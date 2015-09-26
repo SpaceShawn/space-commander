@@ -157,6 +157,21 @@ int delete_command()
     return CS1_SUCCESS;
 }
 
+/** 
+ * ParseResultData will take the incoming result buffers, create commands using the factory,
+ * and call the command ParseResult function to populate the InfoBytes object for 
+ * further processing
+ * 
+ * TODO verify this method is working correctly. TEST
+ **/
+InfoBytes* ParseResultData(char* result_buffer)
+{
+    InfoBytes* result_object;
+    ICommand* command = CommandFactory::CreateCommand(result_buffer);
+    result_object = (InfoBytes* )command->ParseResult(result_buffer);
+    return result_object;
+}
+
 /**
  * The perform function will parse incoming bytes from the Dnet_w_com_r pipe 
  * and attempt to detect result buffers. 
@@ -168,19 +183,6 @@ int process_results(int bytes)
     // relationship between commands and responses, but we don't want the system to 
     // hang waiting for the response. The system should be able to handle any command 
     // responses coming from the satellite in any order
-#ifdef GROUND_MOCK_SAT // using the single pipe method, built from Olivier's hack of gnd_main (netman)
-	if (bytes) 
-	{ // success
-   
-        //InfoBytes * parsed_result = ParseResultData(info_buffer);
-
-        // TODO
-
-        //
-        // TODO
-
-	}
-#else // This code is intended for the info and data pipe operation
 
     char* buffer = NULL; // this buffer will be filled in the default case, see below!
     // TODO change this, we prefer the code to read better sequentially
@@ -246,18 +248,4 @@ int process_results(int bytes)
     return CS1_SUCCESS; 
 }
 
-/** 
- * ParseResultData will take the incoming result buffers, create commands using the factory,
- * and call the command ParseResult function to populate the InfoBytes object for 
- * further processing
- * 
- * TODO verify this method is working correctly. TEST
- **/
-InfoBytes* ParseResultData(char* result_buffer)
-{
-            InfoBytes* result_object;
-            ICommand* command = CommandFactory::CreateCommand(result_buffer);
-            result_object = (InfoBytes* )command->ParseResult(result_buffer);
-            return result_object;
-}
 

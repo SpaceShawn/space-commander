@@ -41,7 +41,7 @@ static char command_buf[CMD_BUF_SIZE] = {'\0'};
 
 TEST_GROUP(GroundCommanderTestGroup)
 {
-    	Net2Com *Test_GD_Commander;
+    Net2Com *Test_GD_Commander;
 	static const int BUFFER_SIZE = 50;
 	static const int NULL_CHAR_LENGTH = 1;
 
@@ -49,10 +49,10 @@ TEST_GROUP(GroundCommanderTestGroup)
     {
         mkdir(CS1_TGZ, S_IRWXU);
         mkdir(CS1_LOGS, S_IRWXU);
-	mkdir(CS1_PIPES, S_IRWXU);
-	mkdir(GND_PIPES, S_IRWXU);
+    	mkdir(CS1_PIPES, S_IRWXU);
+    	mkdir(GND_PIPES, S_IRWXU);
 
-	Test_GD_Commander = new Net2Com(GDnet_w_com_r, GDcom_w_net_r, GInet_w_com_r, GIcom_w_net_r);
+    	Test_GD_Commander = new Net2Com(GDnet_w_com_r, GDcom_w_net_r, GInet_w_com_r, GIcom_w_net_r);
         pid_t pid = fork();
 
         if (pid == 0) {
