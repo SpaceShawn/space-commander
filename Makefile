@@ -97,6 +97,9 @@ test: buildBin make_dir bin/AllTests $(SPACE_COMMANDER_BIN)
 bin/AllTests: tests/unit/AllTests.cpp  $(UNIT_TEST) $(COMMON_OBJECTS) $(OBJECTS) 
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(DEBUGFLAGS) $(INCLUDES) $(LIBPATH) -o $@ $^ $(LIBS) $(ENV)
 	
+
+
+
 #
 #++++++++++++++++++++
 # Ground Commander
@@ -138,6 +141,16 @@ $(SPACE_COMMANDER_Q6_BIN)/%Q6.o: src/space-commander/%.cpp include/space-command
 $(SPACE_COMMANDER_Q6_BIN): src/space-commander/space-commander-main.cpp $(COMMON_Q6_OBJECTS) $(OBJECTS_Q6)
 	$(MBCC) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(DEBUGFLAGS) $(INCLUDES) $(LIBPATH) -o $@/space-commanderQ6 $^ $(LIBS_Q6)
 
+#++++++++++++++++++++
+# CppUTest / Q6 Rules
+#--------------------
+
+testQ6: ENV = -DCS1_DEBUG  $(UTEST_ENV)  -DPRESERVE
+testQ6: buildQ6 make_dir bin/AllTestsQ6 $(SPACE_COMMANDER_Q6_BIN)
+	mkdir -p $(CS1_UTEST_DIR)
+
+bin/AllTestsQ6: tests/unit/AllTests.cpp  $(UNIT_TEST) $(COMMON_Q6_OBJECTS) $(OBJECTS_Q6) 
+	$(MBCC) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(DEBUGFLAGS) $(INCLUDES) $(LIBPATH) -o $@ $^ $(LIBS_Q6) $(ENV)
 
 #
 #
