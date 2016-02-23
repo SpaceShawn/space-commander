@@ -244,7 +244,6 @@ int process_results(int bytes)
             break;
         }
     }
-#endif
     return CS1_SUCCESS; 
 }
 
