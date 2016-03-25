@@ -1,11 +1,13 @@
 #include <cstdio>
 #include <cstdlib>
-#include <time.h>
 #include <cstring>
+#include <inttypes.h>
 #include <signal.h>
 #include <sstream>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <time.h>
 #include <unistd.h>
-#include <inttypes.h>
 
 #include "space-commander/Net2Com.h"
 #include "common/command-factory.h"
@@ -23,8 +25,14 @@ const int MAX_BUFFER_SIZE      = 255;
 const char ERROR_CREATING_COMMAND  = '1';
 const char ERROR_EXECUTING_COMMAND = '2';
 
-static char log_buffer[255] = {0};
-static char info_buffer[255] = {'\0'};
+// Declarations
+static void out_of_memory_handler();
+static int perform(int bytes);
+static void validate();
+
+static char log_buffer[CS1_MAX_LOG_ENTRY] = {0};
+static char info_buffer[NET2COM_MAX_INFO_BUFFER_SIZE] = {'\0'};
+
 static Net2Com* commander = 0; 
 
 const char* LOGNAME = cs1_systems[CS1_COMMANDER];
@@ -42,6 +50,7 @@ static int execute_commands(int bytes);
  *-----------------------------------------------------------------------------*/
 int main() 
 {
+    validate();
     set_new_handler(&out_of_memory_handler);
 
     commander = new Net2Com(Dcom_w_net_r, Dnet_w_com_r, 
@@ -61,8 +70,8 @@ int main()
 
     while (true) 
     {
-        memset(info_buffer, 0, sizeof(char) * 255);
-        int bytes = commander->ReadFromInfoPipe(info_buffer, 255);
+        memset(info_buffer, 0, sizeof(char) * NET2COM_MAX_INFO_BUFFER_SIZE);
+        int bytes = commander->ReadFromInfoPipe(info_buffer, NET2COM_MAX_INFO_BUFFER_SIZE);
 
         if (bytes > 0) {
             execute_commands(bytes);
@@ -108,11 +117,11 @@ int execute_commands(int bytes)
 
         switch (read) 
         {
-            case 252: 
+            case NET2COM_SESSION_ESTABLISHED :
                 break;
-            case 253:
-            case 254:
-            case 255: 
+            case NET2COM_SESSION_END_CMD_CONFIRMATION :
+            case NET2COM_SESSION_END_TIMEOUT :
+            case NET2COM_SESSION_END_BY_OTHER_HOST :
             {
                 int data_bytes = 0;
                 while (data_bytes == 0) {
@@ -238,5 +247,52 @@ void out_of_memory_handler()
 {
     std::cerr << "[ERROR] new failed\n";
     throw bad_alloc();
+}
+
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ *
+ * NAME : perform 
+ *
+ * PURPOSE : validation
+ *
+ *-----------------------------------------------------------------------------*/
+void validate() {
+    bool isValid = true;
+    struct stat stat_buf = {0};
+
+    // checks that the CS1_TGZ dir exists
+    Shakespeare::log(Shakespeare::NOTICE, LOGNAME, "validating CS1_TGZ directory existence");
+    if (stat(CS1_TGZ, &stat_buf) < 0 ) {
+        
+
+        memset(log_buffer,0, CS1_MAX_LOG_ENTRY);
+        snprintf(log_buffer, CS1_MAX_LOG_ENTRY, "directory does not exist, creating : CS1_TGZ=%s", CS1_TGZ);
+        Shakespeare::log(Shakespeare::WARNING, LOGNAME, log_buffer);
+
+
+        char cmd[CS1_PATH_MAX] = {0};
+        snprintf(cmd, CS1_PATH_MAX, "mkdir -p ./%s", CS1_TGZ);
+
+
+        if (system(cmd) != 0) {
+            memset(log_buffer,0, CS1_MAX_LOG_ENTRY);
+            snprintf(log_buffer, CS1_MAX_LOG_ENTRY, "can't create directory : CS1_TGZ=%s", cmd);
+            Shakespeare::log(Shakespeare::ERROR, LOGNAME, log_buffer);
+            isValid = false;
+        }
+    } else {
+       if (!S_ISDIR(stat_buf.st_mode)) {
+            memset(log_buffer,0, CS1_MAX_LOG_ENTRY);
+            snprintf(log_buffer, CS1_MAX_LOG_ENTRY, "file found while directory expected : CS1_TGZ=%s\n", CS1_TGZ);
+            Shakespeare::log(Shakespeare::ERROR, LOGNAME, log_buffer);
+            isValid = false;
+        }
+    }
+
+    if (!isValid) {
+        memset(log_buffer,0, CS1_MAX_LOG_ENTRY);
+        snprintf(log_buffer, CS1_MAX_LOG_ENTRY, "space-commander is in unstable state... some commands might not work properly");
+        Shakespeare::log(Shakespeare::ERROR, LOGNAME, log_buffer);
+    }
 }
 

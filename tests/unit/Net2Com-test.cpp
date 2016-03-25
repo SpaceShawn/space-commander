@@ -85,7 +85,7 @@ TEST(Net2ComTestGroup, ReadFromDataPipe_ReturnsCorrectString)
 TEST(Net2ComTestGroup, WriteToInfoPipe_ReturnsCorrectNumberOfBytesWritten)
 {
     char buffer[BUFFER_SIZE];
-    const unsigned char byte = 252;
+    const unsigned char byte = NET2COM_SESSION_ESTABLISHED;
     int result;
 
     result = netman->WriteToInfoPipe(&byte, 1);
@@ -97,7 +97,7 @@ TEST(Net2ComTestGroup, WriteToInfoPipe_ReturnsCorrectNumberOfBytesWritten)
 TEST(Net2ComTestGroup, ReadFromInfoPipe_ReturnsCorrectByte)
 {
     char buffer[BUFFER_SIZE];
-    const unsigned char byte = 252;
+    const unsigned char byte = NET2COM_SESSION_ESTABLISHED;
     int result = 0;
 
     result = commander->WriteToInfoPipe(&byte, 1);
@@ -111,7 +111,7 @@ TEST(Net2ComTestGroup, ReadFromInfoPipe_ReturnsCorrectByte)
 TEST(Net2ComTestGroup, ReadFromInfoPipe_persist_open_ReturnsCorrectByte)
 {
     char buffer[BUFFER_SIZE];
-    const unsigned char byte = 252;
+    const unsigned char byte = NET2COM_SESSION_ESTABLISHED;
     int result = 0;
 
     result = commander->WriteToInfoPipe(&byte, 1);
